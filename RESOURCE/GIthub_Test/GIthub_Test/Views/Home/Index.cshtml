@@ -16,13 +16,13 @@
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 
     <div class="row">
-        <div id="divLeft" class="col" style="border: 1px solid #F00">
-
+        <div id="divLeft" class="text-left col" style="border: 1px solid #F00">
+            <p>All Repos From<a href="http://github.com/idcf-boat-house">http://github.com/idcf-boat-house</a></p>
             @*<select v-model="selected" multiple style="width:100%">
-                    <option v-for="item in list">{{ item.name }}</option>
-                </select>
-                <br>
-                <span>Selected: {{ selected }}</span>*@
+            <option v-for="item in list">{{ item.name }}</option>
+        </select>
+        <br>
+        <span>Selected: {{ selected }}</span>*@
             <dl>
                 <dd v-for="item in list">
                     <input v-bind:id="item.id" type="checkbox" v-bind:value="item.id" v-model="selected" />
@@ -30,17 +30,17 @@
                 </dd>
             </dl>
             @*<ol>
-                    <li v-for="item in list" v-on:dblclick="dbclick">
-                        {{item["name"]}}
-                    </li>
-                </ol>*@
+            <li v-for="item in list" v-on:dblclick="dbclick">
+                {{item["name"]}}
+            </li>
+        </ol>*@
             @*@foreach (Left left in this.Model.Lefts)
-                {
-                    @left.Title;
-                    <br />
-                }*@
+        {
+            @left.Title;
+            <br />
+        }*@
         </div>
-        <div id="divButtons" class="col">
+        <div id="divButtons" class="text-center col-2">
             <button id="btnMoveToRight" v-on:click="moveToRight">>>>>></button>
             <br />
             <br />
@@ -51,7 +51,8 @@
             <br />
             <button id="btnGenerateEmail" v-on:click="generateEmail">Generate Email</button>
         </div>
-        <div id="divRight" class="col" style="border: 1px solid #F00">
+        <div id="divRight" class="text-left col" style="border: 1px solid #F00">
+            <p>My Favor Repos</p>
             <dl>
                 <dd v-for="item in list">
                     <input v-bind:id="item.id" type="checkbox" v-bind:value="item.id" v-model="selected" />
@@ -60,24 +61,33 @@
             </dl>
 
             @*<ol>
-                    <li v-for="item in list">
-                        {{item["title"]}}
-                    </li>
-                </ol>*@
+            <li v-for="item in list">
+                {{item["title"]}}
+            </li>
+        </ol>*@
             @*@foreach (Right right in this.Model.Rights)
-                {
-                    @right.Title;
-                    <br />
-                }*@
+        {
+            @right.Title;
+            <br />
+        }*@
         </div>
     </div>
-    <div id="divMail" class="row" style="border: 1px solid #F00">
-        Hello Alan,
-        <ul>
-            <li v-for="item in list" v-bind:key="item.id" v-bind:value="item.name">
-                {{ item.name }}
-            </li>
-        </ul>
+    <div id="divMail" class="text-left row" style="border: 1px solid #F00">
+        <div style="display:none;">
+            Hello Alan,
+            <br />
+            <br />
+            This is your favor repos
+            <ul>
+                <li v-for="item in list" v-bind:key="item.id" v-bind:value="item.name">
+                    - {{ item.name }} {{ item.desc }}
+                    <br />
+                    <a v-bind:href="item.htmlUrl"> {{ item.htmlUrl }}</a>
+                </li>
+            </ul>
+            <br />
+        </div>
+        <textarea id="mailText" style="width:100%;" rows="5"></textarea>
     </div>
 </div>
 
@@ -91,36 +101,73 @@
         var selectLeftValus = []; // 选中的左边数据
         var selectRightValues = []; // 选中的右边数据
 
-        var btnMoveToRight = new Vue({
+        var buttonContent = new Vue({
             el: '#divButtons',
             methods: {
                 moveToRight: function () {
                     console.log("moveToRight");
-                    // 数据移动到右边
-                    moveToRight(divLeft.selected);
 
-                    // 清除选择列表
-                    divLeft.selected = [];
+                    var url = "@Url.Action("MoveToRight")";
+                    $.post(url, { "ids": divLeft.selected }, function (data, status) {
+                        if (data.result) {
+                            // 数据处理成功，修改页面状态
 
+                            // 数据移动到右边
+                            // moveToRight(divLeft.selected);
+                            moveToRight(data.ids);
+
+                            // 清除选择列表
+                            divLeft.selected = [];
+                        }
+                    });
                 },
+
                 moveToLeft: function () {
                     console.log("moveToLeft");
-                    // 数据移动到左边
-                    moveToLeft(divRight.selected);
 
-                    // 清除选择列表
-                    divRight.selected = [];
+                    var url = "@Url.Action("MoveToLeft")";
+                    $.post(url, { "ids": divRight.selected }, function (data, status) {
+                        if (data.result) {
+                            // 数据处理成功，修改页面状态
+
+                            // 数据移动到左边
+                            // moveToLeft(divRight.selected);
+                            moveToLeft(data.ids);
+
+                            // 清除选择列表
+                            divRight.selected = [];
+                        }
+                    });
                 },
+
                 generateEmail: function () {
                     console.log("generateEmail");
+
                     // 创建email
                     mailValues.splice(0, mailValues.length);
+                    var ids = [];
                     // 从右边获取列表，遍历
                     for (i = 0; i < rightValues.length; i++) {
                         var item = findRight(rightValues[i].id);
-                        mailValues.push(item);
-                        // $("#divMail");
+                        //mailValues.push(item);
+                        ids.push(item.id);
                     }
+
+                    jQuery.ajaxSettings.traditional = true
+                    $.get("@Url.Action("GenerateEmail")", { "ids": ids }, function (data, status) {
+                        if (data.result) {
+                            var text = '';
+                            text = "Hello Alan,\r\n";
+                            text += "\r\n";
+                            text += "This is your favor repos\r\n";
+                            for (i = 0; i < data.list.length; i++) {
+                                mailValues.push(data.list[i]);
+                                text += "-" + data.list[i].name + " " + data.list[i].desc + "\r\n";
+                                text += data.list[i].htmlUrl +"\r\n"
+                                $("#mailText").html(text);
+                            }
+                        }
+                    });
                 },
             },
         });
@@ -134,7 +181,11 @@
             methods: {
                 dbclick: function (id) {
                     // alert(id)
-                    moveToRight([id]);
+                    $.post("@Url.Action("MoveToRight")", { "ids": [id] }, function (data, status) {
+                        if (data.result) {
+                            moveToRight([id]);
+                        }
+                    });
                 },
             }
         });
@@ -148,7 +199,11 @@
             methods: {
                 dbclick: function (id) {
                     //alert(id)
-                    moveToLeft([id]);
+                    $.post("@Url.Action("MoveToLeft")", { "ids": [id] }, function (data, status) {
+                        if (data.result) {
+                            moveToLeft([id]);
+                        }
+                    });
                 },
             }
         });
@@ -185,8 +240,6 @@
          */
         function moveToRight(ids) {
             // 数据移动到右边
-
-            // $(post) 在成功的返回值函数中做一下操作
             // 选中项目添加到右边列表中
             for (i = 0; i < ids.length; i++) {
                 var item = findLeft(ids[i]);
@@ -207,7 +260,6 @@
          * 数据移动到左边
          */
         function moveToLeft(ids) {
-            // $(post) 在成功的返回值函数中做一下操作
             // 选中项目添加到右边列表中
             for (i = 0; i < ids.length; i++) {
                 var item = findRight(ids[i]);

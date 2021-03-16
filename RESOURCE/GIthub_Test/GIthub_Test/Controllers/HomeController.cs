@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Models.Database;
 using Models.JSON;
@@ -21,12 +22,15 @@ namespace GIthub_Test.Controllers
     public class HomeController : BaseController
     {
         private readonly IHttpClientFactory httpClientFactory;
+        private readonly IConfiguration configuration;
 
         public HomeController(ILogger<HomeController> logger,
             GithubTestDbContext dbContext,
-             IHttpClientFactory clientFactory) : base(logger, dbContext)
+             IHttpClientFactory clientFactory,
+             IConfiguration configuration) : base(logger, dbContext)
         {
             this.httpClientFactory = clientFactory;
+            this.configuration = configuration;
         }
 
         [ActionName("index")]
@@ -162,7 +166,16 @@ namespace GIthub_Test.Controllers
             // 插入左边
             await this.dbContext.Lefts.AddRangeAsync(lefts);
 
-            return View();
+            int count = await this.dbContext.SaveChangesAsync();
+            if (count == ids.Length * 2)
+            {
+                // 添加和删除的合计数量应该是传入id数的两倍
+                return Json(new { result = true, ids = ids });
+            }
+            else
+            {
+                return Json(new { result = false });
+            }
         }
 
         /// <summary>
@@ -188,23 +201,21 @@ namespace GIthub_Test.Controllers
                 });
             }
 
-            //Left left = await this.dbContext.Lefts.FindAsync(id);
-
-            //Right right = new Right
-            //{
-            //    Id = left.Id,
-            //    Title = left.Title,
-            //    Url = left.Url,
-            //    HtmlUrl = left.HtmlUrl,
-            //    LastUpdate = DateTime.Now,
-            //};
-
             // 删除左边
             this.dbContext.Lefts.RemoveRange(selected);
             // 插入右边
             await this.dbContext.Rights.AddRangeAsync(rights);
 
-            return View();
+            int count = await this.dbContext.SaveChangesAsync();
+            if (count == ids.Length * 2)
+            {
+                // 添加和删除的合计数量应该是传入id数的两倍
+                return Json(new { result = true, ids = ids });
+            }
+            else
+            {
+                return Json(new { result = false });
+            }
         }
 
         /// <summary>
@@ -216,18 +227,33 @@ namespace GIthub_Test.Controllers
         [HttpGet]
         public async Task<IActionResult> GenerateEmailAsync(int[] ids)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "orgs/idcf-boat-house/repos");
+            var request = new HttpRequestMessage(HttpMethod.Get, configuration["GithubApiUrl"]);
 
             var client = this.httpClientFactory.CreateClient("github");
 
-            // 循环id获取信息
             var response = await client.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                IEnumerable<OrganizationRepository> repositories = await JsonSerializer.DeserializeAsync<IEnumerable<OrganizationRepository>>(responseStream);
+
+                List<dynamic> result = new List<dynamic>();
+                // 查找选定id的详细信息
+                foreach (int id in ids)
+                {
+                    OrganizationRepository repositorie = repositories.Where(q => q.Id == id).SingleOrDefault();
+                    if (repositorie != null)
+                    {
+                        // 返回客户端的数据
+                        result.Add(new { name = repositorie.Name, htmlUrl = repositorie.HtmlUrl, desc = repositorie.Description });
+                    }
+                }
+
+                return Json(new { result = true, list = result });
             }
 
-            return View();
+            return Json(new { result = false });
         }
 
         public IActionResult Privacy()
@@ -240,5 +266,15 @@ namespace GIthub_Test.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult Test(int id)
+        {
+            return Json(new { result = true, id = id });
+        }
+
     }
 }

@@ -32,6 +32,9 @@ namespace Models.Database
 
         //[Column("last_update")]
         //public DateTimeOffset LastUpdate { get; set; }
+        //[Column("description")]
+        //[MaxLength(2000)]
+        //public string Description { get; set; }
 
         //[Required]
         [Column("insert_date")]
