@@ -1,5 +1,6 @@
 # github_test
-github测试题
+github测试题
+
 ###  2021/3/22 更新内容2  
 数据库表删除了除了主键和name意外的字段  
 更新数据库的sql文本：  \DATABASE\20210322_update_ddl.sql  
@@ -36,9 +37,9 @@ DATABASE：路径下保存数据库文件
     └ 20210322_update_ddl.sql：第二次数据库结构修改
 RESOURCE：路径下保存源码文件  
 #### 环境说明：
-开发工具： visual studio community 2019 
-数据库说明：sql server express 13.0 
-日志说明：使用nlog记录日志。日志会生成到执行程序目录下的log文件夹。
+开发工具： visual studio community 2019  
+数据库说明：sql server express 13.0  
+日志说明：使用nlog记录日志。日志会生成到执行程序目录下的log文件夹。  
 
 启动说明：  
 1.在visual studio community 2019中选择菜单栏的“文件(F)”->“打开(O)”->“项目/解决方案(P)”。弹出窗选择“RESOURCE\GIthub_Test\GIthub_Test\GIthub_Test.sln”。  
