@@ -8,7 +8,7 @@ namespace Database
     /// <summary>
     /// 数据库检索上下文
     /// </summary>
-    public class GithubTestDbContext : BaseDbContext
+    public class GithubTestDbContext : DbContext
     {
         /// <summary>
         /// 日志
@@ -39,7 +39,7 @@ namespace Database
         public GithubTestDbContext(
             DbContextOptions<GithubTestDbContext> options,
             ILogger<GithubTestDbContext> logger,
-            IHttpContextAccessor httpContextAccessor) : base(options, logger, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor) : base(options)
         {
             this.logger = logger;
             this.logger.LogInformation("初始化 数据库");
@@ -60,7 +60,7 @@ namespace Database
                 // FK
 
                 // 全局查询筛选器
-                left.HasQueryFilter(l => !l.DeleteFlag);
+                //left.HasQueryFilter(l => !l.DeleteFlag);
             });
             #endregion
 
@@ -73,7 +73,7 @@ namespace Database
                 // FK
 
                 // 全局查询筛选器
-                right.HasQueryFilter(r => !r.DeleteFlag);
+                //right.HasQueryFilter(r => !r.DeleteFlag);
             });
             #endregion
         }

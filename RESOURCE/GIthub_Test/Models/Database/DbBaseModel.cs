@@ -24,10 +24,12 @@ namespace Models.Database
 
         [Column("url")]
         [MaxLength(2000)]
+        [NotMapped]
         public string Url { get; set; }
 
         [Column("html_url")]
         [MaxLength(2000)]
+        [NotMapped]
         public string HtmlUrl { get; set; }
 
         //[Column("last_update")]
@@ -39,30 +41,35 @@ namespace Models.Database
         //[Required]
         [Column("insert_date")]
         [HiddenInput]
+        [NotMapped]
         // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTimeOffset InsertDate { get; set; }
 
         //[Required]
         [Column("insert_user")]
         [HiddenInput]
+        [NotMapped]
         public Guid InsertUser { get; set; }
 
         //[Required]
         [Column("update_date")]
         [ConcurrencyCheck] // 并发冲突检查
         [HiddenInput]
+        [NotMapped]
         // [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTimeOffset UpdateDate { get; set; }
 
         //[Required]
         [Column("update_user")]
         [HiddenInput]
+        [NotMapped]
         public Guid UpdateUser { get; set; }
 
         //[Required]
         [Column("delete_flag")]
         [DefaultValue(false)]
         [HiddenInput]
+        [NotMapped]
         public bool DeleteFlag { get; set; }
     }
 }
